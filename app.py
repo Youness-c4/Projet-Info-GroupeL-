@@ -1,6 +1,8 @@
-from pprint import pprint
 from tkinter import *
 from tkinter.ttk import Combobox
+from PIL import Image, ImageTk, ImageFilter
+
+import random
 import json
 
 # ----données json----
@@ -19,11 +21,9 @@ def defocus(event):
 
 # ---fenêtre de l'app----
 window = Tk()
-window.title("Qui est-ce ?")
-window.geometry("720x480")
-window.minsize(480, 360)
-window.iconbitmap("logo.ico")
-window.config(background='#599d8a')
+window.title("Qui est-tu ?")
+window.iconbitmap("logo2.ico")
+window.config(background='#4a8ecc')
 
 # ----barre de menu de la fenêtre----
 menu_bar = Menu(window)
@@ -35,56 +35,81 @@ menu_bar.add_cascade(label="Fichier", menu=file_menu)
 # configurer la fenêtre pour ajouter le menu
 window.config(menu=menu_bar)
 
-# ----partie interraction de l'app----
-frame = Frame(window, bg='#599d8a')
-# ajouter liste déroulante des critères
-list_attr = []
-for key, value in data["personnages"][0].items():
-    if key != "fichier" and key != "prenom":
-        list_attr.append(key)
-list_combo = Combobox(frame, values=list_attr, state="readonly")
-list_combo.current(0)
-list_combo.bind("<FocusIn>", defocus)
-list_combo.pack()
-# ajouter frame
-frame.pack(expand=YES)
+
+# ----palette du joueur----
+class Paddle:
+    def __init__(self):
+        # palette
+        self.paddle = Frame(window, bg='#599d8a')
+        self.paddle.pack(expand=YES, padx=20, pady=20)
+
+        # ajouter liste déroulante des critères
+        list_attr = []
+        for key, value in data["personnages"][0].items():
+            if key != "fichier" and key != "prenom":
+                list_attr.append(key)
+        list_combo = Combobox(self.paddle, values=list_attr, state="readonly")
+        list_combo.current(0)
+        list_combo.bind("<FocusIn>", defocus)
+        list_combo.pack()
 
 
 # ----plateau de jeu----
 class Board:
-    def eliminate(self, widget):
-        widget.configure(bg='#ff0000')
-        self.dict_elimines[widget] = True
-        print(self.dict_elimines)
+    def __init__(self, rows, columns):
+        # plateau
+        self.board = Frame(window, bg='#003696')
+        self.board.pack(expand=YES, padx=20, pady=20)
 
-    def __init__(self, rows, columns, cellwidth=0, cellheight=0, ):
+        # personnage qui-est-ce
+        nb_rand = random.randint(0, rows * columns - 1)
+        prenom = data['personnages'][nb_rand]['prenom']
+        print(prenom)
 
-        self.width = columns * cellwidth
-        self.height = rows * cellheight
+        # attributs déclarations
+        self.personnages_board = {}
 
-        board = Frame(window, bg='#599d8a')
-        board.pack(expand=YES)
-
-        self.images = [[PhotoImage()] * columns for i in range(rows)]
-        self.buttons = [[Button()] * columns for i in range(rows)]
-        self.dict_elimines = {}
-
+        # initialisation plateau
         i = 0
-        couleur_bg = StringVar()
-        couleur_bg.set('#599d8a')
-
         for row in range(rows):
             for column in range(columns):
-                self.images[row][column] = PhotoImage(file="personnages/" + data["personnages"][i]["fichier"])
-                self.buttons[row][column] = Button(board, image=self.images[row][column], bg='#599d8a',
+                # boutons
+                image = PhotoImage(file=data['images'] + data["personnages"][i]["fichier"])
+                button = Button(self.board, image=image, bg='#003696',
                                                    highlightthickness=10, relief=GROOVE, cursor="X_cursor")
-                self.buttons[row][column].configure(command=lambda b=self.buttons[row][column]: self.eliminate(b))
-                self.buttons[row][column].grid(row=row, column=column, sticky=N + S + E + W)
-                self.dict_elimines[self.buttons[row][column]] = False
+                button.configure(command=lambda b=button: self.eliminate(b))
+                button.grid(row=row, column=column, sticky=N + S + E + W)
+                # dictionnaire
+                self.personnages_board[button] = [False, data["personnages"][i], image]
+                # incr
                 i += 1
+
+    def eliminate(self, widget):
+        if self.personnages_board[widget][0]:
+            file = data['images'] + self.personnages_board[widget][1]["prenom"].lower()+".png"
+            self.personnages_board[widget][0] = False
+            bg = '#003696'
+        else:
+            file = data['images'] + self.personnages_board[widget][1]["prenom"].lower() + "_cross.png"
+            self.personnages_board[widget][0] = True
+            bg = '#D1007A'
+        img = PhotoImage(file=file)
+        widget.configure(bg=bg, image=img)
+        self.personnages_board[widget][2] = img
 
 
 # ----afficher la fenêtre---
 if __name__ == "__main__":
+    # création plateau + palette
     bd = Board(int(data["ligne"]), int(data["colonne"]))
+    pd = Paddle()
+
+    # MAJ taille fenêtre
+    window.update()
+    w = window.winfo_reqwidth()
+    h = window.winfo_reqheight()
+    window.geometry(f"{w}x{h}")
+    window.minsize(w, h)
+
+    # ouvre la fenêtre
     window.mainloop()
