@@ -78,11 +78,10 @@ class Dashboard:
         checkbtn_facile.grid(row=0, column=4, padx=30)
 
     def disabled_buttons(self):
-        if modefacile.get() == 1:
-            for x in self.gameboard.personnages:
+        for x in self.gameboard.personnages:
+            if modefacile.get() == 1:
                 self.gameboard.personnages[x][1].configure(state=DISABLED)
-        else:
-            for x in self.gameboard.personnages:
+            else:
                 self.gameboard.personnages[x][1].configure(state=NORMAL)
         print("le mode facile est à", modefacile.get())
 
