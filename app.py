@@ -85,13 +85,13 @@ class Dashboard:
                 self.gameboard.personnages[x][1].configure(state=NORMAL)
         print("le mode facile est à", modefacile.get())
 
-    def submitChoice(self, current):
-        print(gameb.personnage_quiestce[current])
-        self.result.configure(text=gameb.personnage_quiestce[current])
+    def submitChoice(self, attribut):
+        print(gameb.personnage_quiestce[attribut])
+        self.result.configure(text=gameb.personnage_quiestce[attribut])
         if modefacile.get() == 1:
             for i in range(len(data['personnages'])):
-                answer = data['personnages'][i][current]
-                if answer != gameb.personnage_quiestce[current]:
+                answer = data['personnages'][i][attribut]
+                if answer != gameb.personnage_quiestce[attribut]:
                     self.gameboard.eliminate(data['personnages'][i]["prenom"])
 
 
