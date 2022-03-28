@@ -1,8 +1,11 @@
 from tkinter import *
 from tkinter.ttk import Combobox
+from network import *
 
 import random
 import json
+import os
+import sys
 
 # ----données json----
 with open("data.json") as mon_fichier:
@@ -10,11 +13,19 @@ with open("data.json") as mon_fichier:
 
 
 # ----def command----
+def destruction():
+    for c in window.winfo_children():
+        c.destroy()
+
+
 def restart():
-    pass
+    destruction()
+    game()
+
 
 def defocus(event):
     event.widget.master.focus_set()
+
 
 def gagne(dashb, gameb):
     dashb.interface.pack_forget()
@@ -23,22 +34,15 @@ def gagne(dashb, gameb):
     l.pack(expand=YES, padx=20, pady=20)
 
 
+def quit():
+    exit()
+
+
 # ---fenêtre de l'app----
 window = Tk()
 window.title("Qui est-ce ?")
 # window.iconbitmap("logo2.ico")
 window.config(background='#4a8ecc')
-
-# ----barre de menu de la fenêtre----
-menu_bar = Menu(window)
-# créer un premier menu
-file_menu = Menu(menu_bar, tearoff=0)
-file_menu.add_command(label="Nouvelle partie", command=restart)
-file_menu.add_command(label="Quitter", command=window.quit)
-menu_bar.add_cascade(label="Fichier", menu=file_menu)
-
-# configurer la fenêtre pour ajouter le menu
-window.config(menu=menu_bar)
 
 # ----variables globales----
 modefacile = BooleanVar()
@@ -94,7 +98,7 @@ class Dashboard:
 
         # bouton submit selection perssonage_quiestce
         button2 = Button(self.interface, text="CONFIRMER", bg='#4dbb69', borderwidth=1,
-                        relief="raised", highlightthickness=0)
+                         relief="raised", highlightthickness=0)
         button2.configure(command=lambda: self.quiestceTrouve(list_combo2.get()))
         button2.grid(row=1, column=2, padx=30)
 
@@ -107,7 +111,7 @@ class Dashboard:
         if modefacile.get() == 1:
             for i in range(len(data['personnages'])):
                 answer = data['personnages'][i][attribut]
-                if answer != gameb.personnage_quiestce[attribut]:
+                if answer != self.gameboard.personnage_quiestce[attribut]:
                     self.gameboard.eliminate(data['personnages'][i]["prenom"])
 
     def quiestceTrouve(self, prenom):
@@ -117,6 +121,8 @@ class Dashboard:
             text = "NON"
             self.result_quiestce.configure(text=text)
 
+def generator():
+    pass
 
 # ----plateau de jeu----
 class Gameboard:
@@ -172,14 +178,27 @@ class Gameboard:
 
 
 # ----afficher la fenêtre---
-if __name__ == "__main__":
+def game():
     # création Gameboard + Dashboard
     gameb = Gameboard(int(data["ligne"]), int(data["colonne"]))
     dashb = Dashboard(gameb)
 
+    # ----barre de menu de la fenêtre----
+    menu_bar = Menu(window)
+
+    # créer un premier menu
+    file_menu = Menu(menu_bar, tearoff=0)
+    file_menu.add_command(label="Nouvelle partie", command=restart)
+    file_menu.add_command(label="Quitter", command=quit)
+    menu_bar.add_cascade(label="JEU", menu=file_menu)
+
+    # configurer la fenêtre pour ajouter le menu
+    window.config(menu=menu_bar)
+
     # mode facile
     modefacile_menu = Menu(menu_bar, tearoff=0)
-    modefacile_menu.add_checkbutton(label="activer", onvalue=1, offvalue=0, variable=modefacile, command=gameb.disabledGameb)
+    modefacile_menu.add_checkbutton(label="activer", onvalue=1, offvalue=0, variable=modefacile,
+                                    command=gameb.disabledGameb)
     menu_bar.add_cascade(label="MODE FACILE", menu=modefacile_menu)
 
     print("je suis le personnage à trouver : " + gameb.personnage_quiestce["prenom"])
@@ -193,3 +212,12 @@ if __name__ == "__main__":
 
     # ouvre la fenêtre
     window.mainloop()
+
+    # recommencer partie
+
+    # Network
+    # n = Network()
+
+
+if __name__ == "__main__":
+    game()
